@@ -43,12 +43,47 @@ pp longitude = loc.fetch("lng")
 # check pp loc to find next step
 pp loc
 
+pp "Latitude: #{latitude}, Longitude: #{longitude}"
+
 #pp maps_url
 
-#pirate_weather_api_key = ENV.fetch("PIRATE_WEATHER_KEY")
+#pirate weather api
+pirate_weather_api_key = ENV.fetch("PIRATE_WEATHER_KEY")
 
 # Assemble url string using website and api variable
-# pirate_weather_url = "https://api.pirateweather.net/forecast/" + pirate_weather_api_key + "/41.8887, -87.6355"
+# example of chicago pirate_weather_url = "https://api.pirateweather.net/forecast/" + pirate_weather_api_key + "/41.8887, -87.6355" 
+# let's make the lat and lon not hardcoded
+pirate_weather_url = "https://api.pirateweather.net/forecast/" + pirate_weather_api_key + "/#{latitude},#{longitude}"
 
 # GET request for URL
-# raw_response = HTTP.get(pirate_weather_url)
+raw_response_weather = HTTP.get(pirate_weather_url)
+parsed_pirate_weather = JSON.parse(raw_response_weather)
+
+# Show current weather
+current_weather = parsed_pirate_weather.fetch("currently")
+current_temp = current_weather.fetch("temperature")
+weather_summary = current_weather.fetch("summary")
+
+pp "The current temp is #{current_temp} degrees."
+pp "Weather summary: #{weather_summary}"
+
+#Stretch goal
+umbrella_needed = false
+
+# Loop through the next 12 hours and check each hour's precipitation probability
+parsed_pirate_weather["hourly"]["data"].first(12).each_with_index do |hour, index|
+  # Get the precipitation probability (convert it to percentage by multiplying by 100)
+  precip_prob = hour["precipProbability"] * 100
+
+  if precip_prob > 10
+    puts "In #{index} hour(s), there is a #{precip_prob}% chance of rain."
+    umbrella_needed = true 
+  end
+end
+
+
+if umbrella_needed
+  puts "You might want to carry an umbrella!"
+else
+  puts "You probably will not need an umbrella today."
+end
